@@ -60,40 +60,40 @@ services:
   ####################
   # broker2
   ####################
-  broker2:
-    image: confluentinc/cp-kafka:${KAFKA_VERSION}
-    hostname: broker2
-    container_name: broker2
-    depends_on:
-      - zookeeper
-      - broker
-    networks:
-      - backend
-    ports:
-      - ${BROKER2_EXTERNAL_PORT}:${BROKER2_EXTERNAL_PORT}
-      - ${BROKER2_LOCAL_PORT}:${BROKER2_LOCAL_PORT}
-      - ${BROKER2_JMX_PORT}:9101
-    environment:
-      KAFKA_BROKER_ID: 2
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:${ZOOKEEPER_CLIENT_PORT}
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker2:${BROKER2_INTERNAL_PORT},PLAINTEXT_HOST://localhost:${BROKER2_LOCAL_PORT}
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${REPLICATION_FACTOR}
-      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 1000
-      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: ${REPLICATION_FACTOR}
-      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: ${REPLICATION_FACTOR}
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: ${REPLICATION_FACTOR}
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: ${REPLICATION_FACTOR}
-      KAFKA_JMX_PORT: 9101
-      KAFKA_JMX_HOSTNAME: broker2
-      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:${SCHEMA_REGISTRY_PORT}
-      KAFKA_LOG4J_ROOT_LOGLEVEL: WARN
-      KAFKA_TOOLS_LOG4J_LOGLEVEL: ERROR
-      KAFKA_LOG_RETENTION_MS: -1
-      KAFKA_LOG4J_LOGGERS: org.apache.zookeeper=WARN,org.apache.kafka=WARN,kafka=WARN,kafka.cluster=WARN,kafka.controller=WARN,kafka.coordinator=WARN,kafka.log=WARN,kafka.server=WARN,kafka.zookeeper=WARN,state.change.logger=WARN
-    volumes:
-      - $PWD/kafka-volume/broker2/data:/var/lib/kafka/data
-    restart: always
+#  broker2:
+#    image: confluentinc/cp-kafka:${KAFKA_VERSION}
+#    hostname: broker2
+#    container_name: broker2
+#    depends_on:
+#      - zookeeper
+#      - broker
+#    networks:
+#      - backend
+#    ports:
+#      - ${BROKER2_EXTERNAL_PORT}:${BROKER2_EXTERNAL_PORT}
+#      - ${BROKER2_LOCAL_PORT}:${BROKER2_LOCAL_PORT}
+#      - ${BROKER2_JMX_PORT}:9101
+#    environment:
+#      KAFKA_BROKER_ID: 2
+#      KAFKA_ZOOKEEPER_CONNECT: zookeeper:${ZOOKEEPER_CLIENT_PORT}
+#      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+#      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker2:${BROKER2_INTERNAL_PORT},PLAINTEXT_HOST://localhost:${BROKER2_LOCAL_PORT}
+#      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: ${REPLICATION_FACTOR}
+#      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 1000
+#      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: ${REPLICATION_FACTOR}
+#      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: ${REPLICATION_FACTOR}
+#      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: ${REPLICATION_FACTOR}
+#      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: ${REPLICATION_FACTOR}
+#      KAFKA_JMX_PORT: 9101
+#      KAFKA_JMX_HOSTNAME: broker2
+#      KAFKA_CONFLUENT_SCHEMA_REGISTRY_URL: http://schema-registry:${SCHEMA_REGISTRY_PORT}
+#      KAFKA_LOG4J_ROOT_LOGLEVEL: WARN
+#      KAFKA_TOOLS_LOG4J_LOGLEVEL: ERROR
+#      KAFKA_LOG_RETENTION_MS: -1
+#      KAFKA_LOG4J_LOGGERS: org.apache.zookeeper=WARN,org.apache.kafka=WARN,kafka=WARN,kafka.cluster=WARN,kafka.controller=WARN,kafka.coordinator=WARN,kafka.log=WARN,kafka.server=WARN,kafka.zookeeper=WARN,state.change.logger=WARN
+#    volumes:
+#      - $PWD/kafka-volume/broker2/data:/var/lib/kafka/data
+#    restart: always
   ####################
   # schema-registry
   ####################
@@ -276,19 +276,7 @@ services:
     networks:
       - backend
     entrypoint: [ '/bin/sh', '-c' ]
-    command: |
-      "
-      kafka-topics --bootstrap-server broker:${BROKER_INTERNAL_PORT} --list
-      echo -e 'Creating kafka topics'
-      kafka-topics --bootstrap-server broker:${BROKER_INTERNAL_PORT} --create --if-not-exists --topic ecommerce_customers --replication-factor ${REPLICATION_FACTOR} --partitions ${PARTITIONS}
-      kafka-topics --bootstrap-server broker:${BROKER_INTERNAL_PORT} --create --if-not-exists --topic ecommerce_products --replication-factor ${REPLICATION_FACTOR} --partitions ${PARTITIONS}
-      kafka-topics --bootstrap-server broker:${BROKER_INTERNAL_PORT} --create --if-not-exists --topic ecommerce_transactions --replication-factor ${REPLICATION_FACTOR} --partitions ${PARTITIONS}
-      kafka-topics --bootstrap-server broker:${BROKER_INTERNAL_PORT} --create --if-not-exists --topic ecommerce_user_interactions --replication-factor ${REPLICATION_FACTOR} --partitions ${PARTITIONS}
-      kafka-topics --bootstrap-server broker:${BROKER_INTERNAL_PORT} --create --if-not-exists --topic ecommerce_product_views --replication-factor ${REPLICATION_FACTOR} --partitions ${PARTITIONS}
-      kafka-topics --bootstrap-server broker:${BROKER_INTERNAL_PORT} --create --if-not-exists --topic ecommerce_system_logs --replication-factor ${REPLICATION_FACTOR} --partitions ${PARTITIONS}
-      echo -e 'Successfully created the following topics:'
-      kafka-topics --bootstrap-server broker:${BROKER_INTERNAL_PORT} --list
-      "
+    command: /bin/sh -c "init.sh"
 
 ################################################################################
 # networks

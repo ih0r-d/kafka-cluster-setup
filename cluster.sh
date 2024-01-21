@@ -82,7 +82,7 @@ export PWD
 
 # Start all services using Docker Compose
 echo "Starting all kafka services ..."
-docker compose -f kafka.yaml up -d
+docker compose -f kafka.yaml up
 
 # Set timeout for readiness checks
 timeout=600
