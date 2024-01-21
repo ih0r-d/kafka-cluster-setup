@@ -1,9 +1,18 @@
 #!/bin/bash
+
+# Check if the correct number of arguments is provided
+if [ "$#" -ne 1 ]; then
+    echo "Usage: $0 must contains one of arguments [start|stop|status]"
+    exit 1
+fi
+
 # Check if the cluster is already set up
-sudo rm -r kafka-ce
+if [ -d "kafka-volume" ]; then
+    sudo rm -r kafka-volume
+fi
 
 # Function to create volumes for various services
-create_volumes() {
+__create_volumes() {
     service=$1
     shift
 
@@ -21,10 +30,9 @@ create_volumes() {
     echo
 }
 # Check readiness for Kafka Connect
-check_connect_readiness(){
+_check_connect_readiness(){
   # for item in connect connect2 connect3
-  # shellcheck disable=SC2043
-  for item in connect
+  for item in conne ct
   do
       connect_host="$item"
       # shellcheck disable=SC2153
@@ -36,7 +44,7 @@ check_connect_readiness(){
   done
 }
 # Check readiness for Kafka brokers
-check_brokers_readiness(){
+_check_brokers_readiness(){
   for item in broker:${BROKER_INTERNAL_PORT} broker2:${BROKER2_INTERNAL_PORT}
   do
       broker="$item"
@@ -56,7 +64,7 @@ check_brokers_readiness(){
   echo ''
 }
 # Check readiness for Zookeeper
-check_zookeeper_readiness(){
+_check_zookeeper_readiness(){
   zookeeper="zookeeper:${ZOOKEEPER_CLIENT_PORT}"
   echo "Wait for ${zookeeper} ..."
   docker exec -it zookeeper cub zk-ready "$zookeeper" $timeout > /dev/null
@@ -64,31 +72,66 @@ check_zookeeper_readiness(){
   echo ''
 }
 # # Create volumes for different services
-create_all_volumes(){
-  create_volumes zookeeper kafka-ce/zk/data kafka-ce/zk/txn-logs
-  create_volumes brokers kafka-ce/broker/data kafka-ce/broker2/data kafka-ce/broker3/data kafka-ce/broker4/data
-  create_volumes schema-registry kafka-ce/schema-registry/data
-  create_volumes connect kafka-ce/connect/data kafka-ce/connect/plugins
-  create_volumes ksqldb-cli kafka-ce/ksqldb-cli/scripts
-  create_volumes filepulse kafka-ce/connect/data/filepulse/xml
+_create_all_volumes(){
+  __create_volumes zookeeper kafka-volume/zk/data kafka-volume/zk/txn-logs
+  __create_volumes brokers kafka-volume/broker/data kafka-volume/broker2/data kafka-volume/broker3/data kafka-volume/broker4/data
+  __create_volumes schema-registry kafka-volume/schema-registry/data
+  __create_volumes connect kafka-volume/connect/data kafka-volume/connect/plugins
+  __create_volumes ksqldb-cli kafka-volume/ksqldb-cli/scripts
+  __create_volumes filepulse kafka-volume/connect/data/filepulse/xml
 }
 
-# Load environment variables from .env file
-source .env
-create_all_volumes
 
-PWD=$(pwd)
-export PWD
 
-# Start all services using Docker Compose
-echo "Starting all kafka services ..."
-docker compose -f kafka.yaml up
+# Start cluster
+start_cluster() {
+  # Load environment variables from .env file
+  source .env
+  _create_all_volumes
 
-# Set timeout for readiness checks
-timeout=600
-echo ''
+  PWD=$(pwd)
+  export PWD
 
-check_zookeeper_readiness
-check_brokers_readiness
-check_connect_readiness
-echo "Kafka cluster is ready ✅"
+  # Start all services using Docker Compose
+  echo "✔ Starting all kafka services..."
+  docker compose -f kafka.yaml up -d
+
+  # Set timeout for readiness checks
+  timeout=100
+  echo ''
+
+  _check_zookeeper_readiness
+  _check_brokers_readiness
+  _check_connect_readiness
+  echo -e "✔ Kafka cluster is ready\t✅"
+}
+
+# Status of cluster
+status_cluster(){
+  docker ps --format "table {{.ID}}\t{{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
+}
+
+# Stop cluster
+stop_cluster() {
+  docker-compose -f kafka.yaml down
+  echo ''
+  echo -e "✔ Kafka cluster is stopped\t✅"
+}
+
+
+# Execute the appropriate function based on the command-line argument
+case "$1" in
+    start)
+        start_cluster
+        ;;
+    status)
+        status_cluster
+        ;;
+    stop)
+        stop_cluster
+        ;;
+    *)
+        echo "Invalid argument. Usage: $0 [start|stop|status]"
+        exit 1
+        ;;
+esac

@@ -275,8 +275,8 @@ services:
       - connect
     networks:
       - backend
-    entrypoint: [ '/bin/sh', '-c' ]
-    command: /bin/sh -c "init.sh"
+    entrypoint: [ '/bin/bash', '-c' ]
+    command: /bin/bash -c "./init.sh"
 
 ################################################################################
 # networks
