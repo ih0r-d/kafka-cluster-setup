@@ -58,7 +58,7 @@ Review and customize the configuration files according to your needs:
    * If necessary, you have the option to manually run specific services instead of using `cluster.sh`.
    
    ```bash
-   docker-compose -f kafka.yaml up -d {service} 
+   docker-compose -f kafka-classic.yaml up -d {service} 
    ```
    > **_NOTE:_** `{service}` in this command means one of included services in compose file.
 

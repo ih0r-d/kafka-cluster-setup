@@ -94,7 +94,7 @@ start_cluster() {
 
   # Start all services using Docker Compose
   echo "✔ Starting all kafka services..."
-  docker compose -f kafka.yaml up -d
+  docker compose -f docker-compose-kafka-cluster-ksqldb.yml up -d
 
   # Set timeout for readiness checks
   timeout=100
@@ -113,7 +113,7 @@ status_cluster(){
 
 # Stop cluster
 stop_cluster() {
-  docker-compose -f kafka.yaml down
+  docker-compose -f docker-compose-kafka-cluster-ksqldb.yml down
   echo ''
   echo -e "✔ Kafka cluster is stopped\t✅"
 }
